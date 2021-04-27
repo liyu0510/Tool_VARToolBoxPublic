@@ -27,8 +27,6 @@ for nvar=1:VAR.n
 
 end
 
-
-
 save2pdf(['newfigures/IRF_hor' num2str(VAR.irhor)])
 close
 

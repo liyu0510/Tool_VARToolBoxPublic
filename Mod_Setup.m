@@ -36,7 +36,7 @@ VAR.irhor      =   Para.irhor;                                % Impulse Response
 %% 4.Setup model
 VAR.vars             = DATASET_VAR.TSERIES(VAR.smpl_min_VAR:VAR.smpl_max_VAR,cell2mat(values(DATASET_VAR.MAP,VAR.select_vars)));
 VAR.nobs             = size(VAR.vars,1);        % total number of observations
-VAR.T                = length(VAR.vars)-VAR.p;  % real number of observations that make it to the regression
+VAR.T                = length(VAR.vars)-abs(VAR.p);  % real number of observations that make it to the regression
 VAR.n                = size(VAR.vars,2);        % dimension of multivariate (excluding constant)
 VAR.year             = DATASET_VAR.TSERIES(VAR.smpl_min_VAR:VAR.smpl_max_VAR,cell2mat(values(DATASET_VAR.MAP,{'Year'})));
 VAR.month            = DATASET_VAR.TSERIES(VAR.smpl_min_VAR:VAR.smpl_max_VAR,cell2mat(values(DATASET_VAR.MAP,{'Month'})));

@@ -11,11 +11,10 @@ clc;
 
 % 0.2.set work directory
 cd F:\GitHub\SVARToolBox;
-% cd C:\Users\Li\Documents\GitHub\ProjVAR;
 
 
 % 0.3.load data
-Prep_ImportData('Uhlig2005_Data.xlsx')    
+Prep_ImportData('Data_Uhlig2005.xlsx')    
 load ..\SVARToolBox\DATASET DATASET_VAR;
 
 
@@ -24,6 +23,9 @@ load ..\SVARToolBox\DATASET DATASET_VAR;
 Para.p      = 12;                  % VAR lag length
 Para.const  = 0;  
 Para.irhor  = 60;                 % Impulse response horizon
+Para.clevel = 95;   % 68;         % Bootstrap percentile shown
+Para.CI     = [5 16 84 95];       % Bootstrap multiple percentile shown
+
 
 % Plot Paramters
 ParaPlot.nCol = 2;
@@ -59,7 +61,7 @@ R(:,:,1) = [ 0     0     0    % Real GDP
              1     6    -1    % NonBorr. Reserves
              0     0     0];  % Total Reserves
 
-ident_input_sign     = {'sign', VAR_Ident_short, R, ndraw};
+ident_input_sign     = {'sign', Para, VAR_Ident_short, R};
 
 VAR_Ident_sign = Mod_Ident(ident_input_sign);
   
@@ -67,7 +69,7 @@ VAR_Ident_sign = Mod_Ident(ident_input_sign);
 
 %% 2.Plot 
 % standardized plot
-Plot_IRF(VAR_Ident_sign,VAR_Ident_sign,ParaPlot);
+Plot_IRF_MultipleCI(VAR_Ident_sign,VAR_Ident_sign,ParaPlot);
 
 %%
 

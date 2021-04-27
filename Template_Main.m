@@ -27,11 +27,10 @@ clc;
 %%
 % 0.2.set work directory.
 cd F:\GitHub\SVARToolBox;
-% cd C:\Users\Li\Documents\GitHub\ProjVAR;
 
 %%
 % 0.3.load data.
-Prep_ImportData('Template_Data.xlsx');
+Prep_ImportData('Data_Template.xlsx');
 load ..\SVARToolBox\DATASET DATASET_VAR;
 
 

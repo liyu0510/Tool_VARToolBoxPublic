@@ -11,11 +11,10 @@ clc;
 
 % 0.2.set work directory
 cd F:\GitHub\SVARToolBox;
-% cd C:\Users\Li\Documents\GitHub\ProjVAR;
 
 
 % 0.3.load data
-Prep_ImportData('BQ1989_Data.xlsx')    
+Prep_ImportData('Data_BQ1989.xlsx')    
 load ..\SVARToolBox\DATASET DATASET_VAR;
 
 
@@ -28,6 +27,7 @@ Para.irhor  = 40;                 % Impulse response horizon
 % Simulation Parameters
 Para.nboot  = 1000;               % Number of bootstrap samples (equals 10000 in the paper)
 Para.clevel = 95;   % 68;         % Bootstrap percentile shown
+Para.CI     = [5 16 84 95];       % Bootstrap multiple percentile shown
 
 % Plot Paramters
 ParaPlot.nCol = 2;
@@ -50,21 +50,21 @@ VAR = Mod_Setup(DATASET_VAR, Para, Start, End, VAR_cell, VAR_label_cell, VAR_lab
 
 % input for long run identification
 long_order = [1, 2];
-long_shock  = 1;
+long_shock  = 2;
 
 
 % long run identification
 VAR_Ident_long = Mod_EstOLS(VAR, long_order, long_shock, 'long');
-    VAR_Ident_long_bs = Mod_EstOLS_bs(VAR_Ident_long, Para.nboot, Para.clevel);
+    VAR_Ident_long_bs = Mod_EstOLS_bs(VAR_Ident_long, Para);
         
 VAR_Ident_long_total = Mod_EstOLS(VAR, long_order, [], 'long');
-    VAR_Ident_long_total_bs = Mod_EstOLS_bs(VAR_Ident_long_total, Para.nboot, Para.clevel);
+    VAR_Ident_long_total_bs = Mod_EstOLS_bs(VAR_Ident_long_total, Para);
 
 %%
 
 %% 2.Plot 
 % standardized plot
-Plot_IRF(VAR_Ident_long,VAR_Ident_long_bs,ParaPlot);
+Plot_IRF_MultipleCI(VAR_Ident_long,VAR_Ident_long_bs,ParaPlot);
 Plot_IRF_Cumulative(VAR_Ident_long,VAR_Ident_long_bs,ParaPlot);
 
 % exported plot

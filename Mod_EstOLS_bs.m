@@ -44,7 +44,7 @@ function VARbs = Mod_EstOLS_bs(VAR, Para)
                 rr = 1-2*(rand(VAR.T,1)>0.5);
                 % T x 1 -1 or 1 random numbers with prob 0.5-0.5
                     % But this will make CI super large?
-                    % Why VAR.T? Because VAR.T = length(VAR.vars)-VAR.p;
+                    % Why VAR.T? Because VAR.T = length(VAR.vars)-abs(VAR.p);
                     % Therefore, we need to generate this number of shock
                     % sampling for the whole sample.
 
@@ -54,19 +54,19 @@ function VARbs = Mod_EstOLS_bs(VAR, Para)
                     % By this operation we thereby obtain a "sampled"
                     % residual, with which we can build new dataset.
                   
-                varsb = zeros(VAR.p+VAR.T,VAR.n);
+                varsb = zeros(abs(VAR.p)+VAR.T,VAR.n);
                 
                 
 
        %%
         % 2.3. Generate simualted data using these residuals.
                 % Initial values: first p periods are true value.
-                    varsb(1:VAR.p,:) = VAR.vars_order(1:VAR.p,:);
+                    varsb(1:abs(VAR.p),:) = VAR.vars_order(1:abs(VAR.p),:);
 
 
                 % Loop to fill in simulated value.
-                for j = VAR.p+1:VAR.p+VAR.T
-                    lvars = (varsb(j-1:-1:j-VAR.p,:))';
+                for j = abs(VAR.p)+1:abs(VAR.p)+VAR.T
+                    lvars = (varsb(j-1:-1:j-abs(VAR.p),:))';
                     % Put in constant terms.
                         %   const : 0, no constant, no trend
                         %           1, constant, no trend
@@ -83,7 +83,7 @@ function VARbs = Mod_EstOLS_bs(VAR, Para)
                             linevars = [1 trend(j) trend(j).^2 lvars(:)'];
                     end
                     
-                    varsb(j,:) = linevars*VAR.bet + resb(:,j-VAR.p)';
+                    varsb(j,:) = linevars*VAR.bet + resb(:,j-abs(VAR.p))';
          
                 end 
                 

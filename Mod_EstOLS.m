@@ -36,9 +36,20 @@ function [VAR] = Mod_EstOLS(VAR, var_order, pos_shock, ident)
 %%    
     
 %% 2.Make lag matrix.
-X      = lagmatrix(VAR.vars_order,1:VAR.p);    % Note that here is 1:VAR.p
-X      = X(VAR.p+1:end,:);               % The first VAR.p period is not complete, drop them
-Y      = VAR.vars_order(VAR.p+1:end,:);
+
+    if VAR.p > 0
+    % if VAR.p is positive: lags
+    X      = lagmatrix(VAR.vars_order,1:VAR.p);    % Note that here is 1:VAR.p
+    X      = X(VAR.p+1:end,:);               % The first VAR.p period is not complete, drop them
+    Y      = VAR.vars_order(VAR.p+1:end,:);
+
+    else
+    % % if VAR.p is negative: leads
+    X      = lagmatrix(VAR.vars_order,VAR.p:-1);    % Note that here is 1:VAR.p
+    X      = X(1:end+VAR.p,:);               % The last VAR.p period is not complete, drop them
+    Y      = VAR.vars_order(1:end+VAR.p,:);
+
+    end
 %%
 
 %% 3.Add constant.
@@ -72,24 +83,26 @@ VAR.bet  = X\Y;
 
 VAR.betT    = VAR.bet';
 VAR.res     = Y-X*VAR.bet;
-VAR.Sigma   = (VAR.res'*VAR.res)/(VAR.T-(VAR.n*VAR.p + VAR.const));
+
+VAR.Sigma   = (VAR.res'*VAR.res)/(VAR.T-(VAR.n*abs(VAR.p) + VAR.const));
+
 
 % get different representation
     if VAR.const  ~= 1
-        for kk=1:VAR.p
+        for kk=1:abs(VAR.p)
             VAR.Bet(:,:,kk) = VAR.betT(:,((kk-1)*VAR.n+1):(kk*VAR.n));
         end
     end
 
     if VAR.const  == 1
-        for kk=1:VAR.p
+        for kk=1:abs(VAR.p)
             VAR.Bet(:,:,kk) = VAR.betT(:,(1+(kk-1)*VAR.n+1):(1+kk*VAR.n));
         end
         VAR.BCONS = VAR.betT(:,1);
     end
 
 % get companion matrix.
-VAR.betcomp = [VAR.betT(:,1+VAR.const:VAR.n*VAR.p+VAR.const); eye(VAR.n*(VAR.p-1)) zeros(VAR.n*(VAR.p-1),VAR.n)];  
+VAR.betcomp = [VAR.betT(:,1+VAR.const:VAR.n*abs(VAR.p)+VAR.const); eye(VAR.n*(abs(VAR.p)-1)) zeros(VAR.n*(abs(VAR.p)-1),VAR.n)];  
 
 % get moving average coefficients.
     % OD:   order of the MA representation to be computed
@@ -101,16 +114,16 @@ end
     
 VAR.BB = zeros(VAR.n,VAR.n,OD);
 VAR.BB(:,:,1) = eye(VAR.n,VAR.n);
-coef = VAR.betT(:,1+VAR.const:VAR.n*VAR.p+VAR.const);
-COEF = zeros(VAR.n,VAR.n, VAR.p);
+coef = VAR.betT(:,1+VAR.const:VAR.n*abs(VAR.p)+VAR.const);
+COEF = zeros(VAR.n,VAR.n, abs(VAR.p));
 
-for kk=1:VAR.p
+for kk=1:abs(VAR.p)
         COEF(:,:,kk) = coef(:,((kk-1)*VAR.n+1):(kk*VAR.n));
 end
 
 for ii = 1:OD
     dummy = zeros(VAR.n,VAR.n);
-    for jj=1:min(ii,VAR.p) 
+    for jj=1:min(ii,abs(VAR.p)) 
         % previous p block. If ii < p, previous ii block.
         % min to make sure ii-jj+1 >= 1.
         % written as sum of jj matrix
@@ -135,7 +148,7 @@ end
 
 %% 5.Run identification.
     if isempty(var_order)
-        % Do not impose short run restriction. Run VAR.
+        % Do not impose identification restrictions.
         VAR.B   =   eye(size(VAR.Sigma));   
         VAR.ident = 'non';
 
@@ -153,18 +166,21 @@ end
             VAR.B     = B;
             
         elseif (strcmp(ident, 'non')) 
-            % disp('No identification imposed. Run VAR.');       
+            disp('No identification imposed. Run VAR.');       
             VAR.ident = 'non';
             VAR.B   =   eye(size(VAR.Sigma));
-            
+        
         else
-            
             disp('Not applicable. Use Mod_Ident function for other identification schemes.');
         end
     end
 %%
 
 %% 6.Obtain result: IRF and FEVD.
+if VAR.p <0
+    VAR.IRF = [];
+    VAR.FEVD = [];
+else
     if ~isempty(pos_shock) && pos_shock > size(VAR.Sigma, 2)
         disp('Shock position exceeds number of variables.');
    
@@ -204,7 +220,7 @@ end
 %             % Only keep the rows that are non zero.
 
     elseif isempty(pos_shock)
-    % Shock not specified. Want all shocks.
+    disp('Shock not specified. Want all shocks.');
     
         % 1) Calculate using function.
             IRF_total      = Res_IRF(VAR, VAR.B);
@@ -228,5 +244,5 @@ end
 %                     end
 %                 end
 %                 VAR.irs_total = irs_total(VAR.p+1:end,:,:);
-
     end
+end

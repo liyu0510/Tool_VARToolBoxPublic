@@ -1,20 +1,22 @@
 function Plot_IRF_MultipleCI_Shade(VAR, VARCI, para)
 
-%% 1.Import parameter
+%% 1. Parameter
 nCol     = round(sqrt(VAR.n));
 nRow     = ceil(sqrt(VAR.n));
 fontsize = para.fontsize;            % Fontsize in figures
 
-
 set(gcf,'DefaultAxesFontSize',fontsize);
 set(gcf,'DefaultTextFontSize',fontsize);
 
-
+%% 2. Plot
 for nvar=1:VAR.n
        
     subplot(nCol,nRow,nvar); 
     plot(1:VAR.irhor,VAR.IRF(:,nvar),'LineWidth',2,'Color',[0.01 0.09 0.44]); 
-    title(VAR.select_vars_label_order(1,nvar)); set(gcf, 'Color', 'w');
+%     title(VAR.select_vars_label_order(1,nvar),'interpreter','latex','FontSize', 13);
+%     title(['Resp. of ' char(VAR.select_vars_label_order(1,nvar))],'interpreter','latex','FontSize', 13); 
+    title([char(VAR.select_vars_label_order(1,nvar))],'interpreter','latex','FontSize', 13); 
+
     hold on
 
     if isfield(VARCI,'A') 
@@ -32,13 +34,16 @@ for nvar=1:VAR.n
         plot(zeros(1,VAR.irhor),'k','LineWidth',0.5)
     end
     
-    set(gca,'YGrid','off','XGrid','on');
-    set(gcf, 'units', 'inches', 'position', [2 2 15 8])
-    set(gcf, 'Color', 'w');
+	xlabel ('Periods after shock','interpreter','latex','FontSize', 13);
+    ylabel ('Impulse responese ','interpreter','latex','FontSize', 13);
+%     ylabel (['Resp. of '  char(VAR.select_vars_label_order(1,nvar))],'interpreter','latex','FontSize', 13);
     
-    grid
+    set(gca,'YGrid','on','XGrid','on');
+    set(gcf, 'units', 'inches', 'position', [.1 .1 10 8])
+    set(gcf, 'Color', 'w');
+
 
 end
 
 save2pdf(['newfigures/IRF_Multi_Shade_hor' num2str(VAR.irhor)])
-close
+% close

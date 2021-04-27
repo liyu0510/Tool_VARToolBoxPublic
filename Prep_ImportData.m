@@ -15,12 +15,11 @@ DATASET_VAR.TSERIES = readtable(Dataset);                               % Reads 
 DATASET_VAR.LABEL   = DATASET_VAR.TSERIES.Properties.VariableNames;     % Extract variable names
 DATASET_VAR.VALUE   = 1:length(DATASET_VAR.LABEL);
 
-DATASET_VAR.MAP = containers.Map(DATASET_VAR.LABEL,DATASET_VAR.VALUE);
-    % Creates a mapping between labels and values
+DATASET_VAR.MAP = containers.Map(DATASET_VAR.LABEL,DATASET_VAR.VALUE);  % Creates a mapping between labels and values
 
-DATASET_VAR.TSERIES = table2array(DATASET_VAR.TSERIES);           % Reads data, with names
+DATASET_VAR.TSERIES = table2array(DATASET_VAR.TSERIES);                 % Reads data, with names
     
-save('..\SVARToolBox\DATASET.mat','DATASET_VAR');                     % Save data into a matrix
+save('..\SVARToolBox\DATASET.mat','DATASET_VAR');                       % Save data into a matrix
 
 end
 % 

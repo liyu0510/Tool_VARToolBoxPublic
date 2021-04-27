@@ -37,12 +37,13 @@ function [FEVD, VAR] = Res_FEVD(VAR, Ident_Columns)
                 % The calculation of MSE does not require identification.
                 % We need VAR impulse response.
                 % Why? 研究 shock 是如何被放大的。
-                % 为什么研究shock的放大需要PSI？不是应该需要 companion matrix？
-                % PSI 本质上就是 companion matrix？
-                % PSI 是从哪个 code 里来的？Bianchi..
+                % 为什么研究shock的放大需要PSI？需要 companion matrix. PSI 本质上就是 companion matrix？
+                % PSI from Bianchi.
             
             
                 irs_total_unitshock   = zeros(VAR.irhor+VAR.p,length(VAR.B),length(VAR.B));  
+
+
                 % irs_total_unitshock(t,j,i):t period, j impulse response from i.
                 % Allocate space in advance.
                 
@@ -58,9 +59,14 @@ function [FEVD, VAR] = Res_FEVD(VAR, Ident_Columns)
                            lvars_total = (irs_total_unitshock(jj+VAR.p-1:-1:jj,:,i))';
                            irs_total_unitshock(VAR.p+jj,:,i) = lvars_total(:)'*VAR.bet(1+VAR.const:VAR.n*VAR.p+VAR.const,:);   
                         end
-                end
 
+                
+                
+                end
+                
+                
                 IRFjunk = irs_total_unitshock(VAR.p+1:end,:,:);   % VAR impulse response multiplier.
+
                     % IRFjunk(t,j,i):t period,j impulse response from i.
                     % What's the difference btw IRFjunk and VAR.betcomp?
                     % IRFjunk is computed IRF.

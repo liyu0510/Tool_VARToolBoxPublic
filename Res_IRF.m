@@ -16,33 +16,55 @@ function [IRF, VAR] = Res_IRF(VAR, IdentifiedB)
     IRF   = zeros(VAR.irhor, length(VAR.select_vars), ncols); % Initial IRF.
     impulse = zeros(ncols,1);               % Initial shock.
 
-    for c = 1:ncols
-        
-	% shock size
-%         % one stdev shock
-%             impulse(c,1) = 1;     
-        % unitary shock (not applicable for proxy?)
-        if isfield(VAR,'pos_shock')  && isfield(VAR,'Ident_column')==0     % short ident, long ident
-            impulse(c,1) = 1/IdentifiedB(VAR.pos_shock); 
-        elseif isfield(VAR,'pos_shock')&& isfield(VAR,'Ident_column')  % maxshare ident
-            impulse(c,1) = 1/IdentifiedB(VAR.N); 
-        elseif isfield(VAR,'b1')            % proxy ident
-            impulse(c,1) = 1/IdentifiedB(1); 
-        elseif isfield(VAR,'Bnew')          % sign ident
-            impulse(c,1) = 1/IdentifiedB(c);       
+    if ncols > 1 % joint identification of multiple shocks
+        for c = 1:ncols
+        % shock size
+        % impulse(c,1) = 1;     % one stdev shock 
+            if ~isfield(VAR,'pos_shock')  && ~isfield(VAR,'Ident_column')  % short/long ident, all shocks
+                impulse(c,1) = 1/IdentifiedB(c); 
+            elseif ~isfield(VAR,'pos_shock')&& isfield(VAR,'Ident_column')  % maxshare ident, multiple columns
+                impulse(c,1) = 1/IdentifiedB(c); 
+            elseif isfield(VAR,'Bnew')                                     % sign ident, multiple columns
+                impulse(c,1) = 1/IdentifiedB(c);       
+            end
+
+            irs = zeros((VAR.irhor+VAR.p), length(VAR.select_vars));    
+            irs(VAR.p+1,:) = IdentifiedB(:,c)*impulse(c,1); 
+
+            for jj=2:VAR.irhor    % VAR.p+1 has been filled
+                lvars = (irs(VAR.p+jj-1:-1:jj,:))'; % for a given period, choose previous p period values¡£
+                irs(VAR.p+jj,:) = lvars(:)'*VAR.bet(1+VAR.const:VAR.n*VAR.p+VAR.const,:);  
+            end
+            
+            IRF(:,:,c) = irs(VAR.p+1:end,:); 
+
         end
-                    
-        irs = zeros((VAR.irhor+VAR.p), length(VAR.select_vars));    
-        irs(VAR.p+1,:) = IdentifiedB(:,c)*impulse(c,1); 
         
-        for jj=2:VAR.irhor    % VAR.p+1 has been filled
-            lvars = (irs(VAR.p+jj-1:-1:jj,:))'; % for a given period, choose previous p period values¡£
-            irs(VAR.p+jj,:) = lvars(:)'*VAR.bet(1+VAR.const:VAR.n*VAR.p+VAR.const,:);  
+    elseif ncols == 1
+        
+        for c = 1
+        % shock size
+        % impulse(c,1) = 1;     % one stdev shock 
+            if isfield(VAR,'pos_shock')  && isfield(VAR,'Ident_column')==0 % short/long ident, one shock
+                impulse(c,1) = 1/IdentifiedB(VAR.pos_shock); 
+            elseif isfield(VAR,'pos_shock')&& isfield(VAR,'Ident_column')  % maxshare ident, one column
+                impulse(c,1) = 1/IdentifiedB(VAR.N); 
+            elseif isfield(VAR,'b1')                                       % proxy ident, one proxy
+                impulse(c,1) = 1/IdentifiedB(1);      
+            end
+
+            irs = zeros((VAR.irhor+VAR.p), length(VAR.select_vars));    
+            irs(VAR.p+1,:) = IdentifiedB(:,c)*impulse(c,1); 
+
+            for jj=2:VAR.irhor    % VAR.p+1 has been filled
+                lvars = (irs(VAR.p+jj-1:-1:jj,:))'; % for a given period, choose previous p period values¡£
+                irs(VAR.p+jj,:) = lvars(:)'*VAR.bet(1+VAR.const:VAR.n*VAR.p+VAR.const,:); 
+            end
+            
+            IRF(:,:,c) = irs(VAR.p+1:end,:); 
+
         end
-        
-        IRF(:,:,c) = irs(VAR.p+1:end,:); 
     end
-   
 %         no_fig = plot_figure_onlyChol(VAR,VARChol,VARCholbs,4,2,M,switch_extern);
 %         no_fig2 = plot_figure_onlyChol_nonConfi(VAR,VARChol,4,2,M,switch_extern);
 

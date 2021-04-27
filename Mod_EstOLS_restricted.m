@@ -39,7 +39,7 @@ function [VAR] = Mod_EstOLS_restricted(VAR, var_order, restr, chi2, restrF, pos_
 % Set data
     T = VAR.T; % length of time series
     k = VAR.n; % number of variables
-    p = VAR.p; % number of lags
+    p = abs(VAR.p); % number of lags/leads
     cons = VAR.const;
     Yobs = VAR.vars_order';
     
@@ -54,14 +54,27 @@ function [VAR] = Mod_EstOLS_restricted(VAR, var_order, restr, chi2, restrF, pos_
         Z = zeros(k*p,T);
     end
     
-    for j = 1:T
-        Y(:,j) = Yobs(:,j+p); % set the regressand matrix for each period j
-        dummy  = Yobs(:,(j+p-1):(-1):(j)); % set the regressor matrix for the corresponding period j
-        dummy  = dummy(:); % line it up
-        if cons == 1  % if constant is included
-            Z(:,j) = [1;dummy];
-        else          % otherwise
-            Z(:,j) = dummy;
+    if VAR.p >0
+        for j = 1:T
+            Y(:,j) = Yobs(:,j+p); % set the dependent variable matrix for each period j
+            dummy  = Yobs(:,(j+p-1):(-1):(j)); % set the regressor matrix for the corresponding period j
+            dummy  = dummy(:); % line it up
+            if cons == 1  % if constant is included
+                Z(:,j) = [1;dummy];
+            else          % otherwise
+                Z(:,j) = dummy;
+            end
+        end
+    else
+        for j = 1:T
+            Y(:,j) = Yobs(:,j); % set the dependent variable matrix for each period j
+            dummy  = Yobs(:,(j+1):1:(j+p)); % set the regressor matrix for the corresponding period j
+            dummy  = dummy(:); % line it up
+            if cons == 1  % if constant is included
+                Z(:,j) = [1;dummy];
+            else          % otherwise
+                Z(:,j) = dummy;
+            end
         end
     end
         
@@ -140,7 +153,7 @@ function [VAR] = Mod_EstOLS_restricted(VAR, var_order, restr, chi2, restrF, pos_
 
 
     % get companion matrix.
-    VAR.betcomp = [VAR.betT(:,1+VAR.const:VAR.n*VAR.p+VAR.const); eye(VAR.n*(VAR.p-1)) zeros(VAR.n*(VAR.p-1),VAR.n)];  
+    VAR.betcomp = [VAR.betT(:,1+VAR.const:VAR.n*abs(VAR.p)+VAR.const); eye(VAR.n*(abs(VAR.p)-1)) zeros(VAR.n*(abs(VAR.p)-1),VAR.n)];  
 
     % get moving average coefficients.
         % OD:   order of the MA representation to be computed
@@ -152,16 +165,16 @@ function [VAR] = Mod_EstOLS_restricted(VAR, var_order, restr, chi2, restrF, pos_
 
     VAR.BB = zeros(VAR.n,VAR.n,OD);
     VAR.BB(:,:,1) = eye(VAR.n,VAR.n);
-    coef = VAR.betT(:,1+VAR.const:VAR.n*VAR.p+VAR.const);
-    COEF = zeros(VAR.n,VAR.n, VAR.p);
+    coef = VAR.betT(:,1+VAR.const:VAR.n*abs(VAR.p)+VAR.const);
+    COEF = zeros(VAR.n,VAR.n, abs(VAR.p));
 
-for kk=1:VAR.p
+for kk=1:abs(VAR.p)
         COEF(:,:,kk) = coef(:,((kk-1)*VAR.n+1):(kk*VAR.n));
 end
 
 for ii = 1:OD
     dummy = zeros(VAR.n,VAR.n);
-    for jj=1:min(ii,VAR.p) 
+    for jj=1:min(ii,abs(VAR.p)) 
         % previous p block. If ii < p, previous ii block.
         % min to make sure ii-jj+1 >= 1.
         % written as sum of jj matrix
@@ -180,6 +193,23 @@ end
 % ii - 6
 % ii - 7
 
+
+% Test restrictions
+if chi2==1
+    u_alt=Y-dummyalt*Z;
+    SIGMA_alt=(1/(T-k*p-1))*(u_alt*u_alt');
+    cv=kron(SIGMA_alt,inv(cov(Z(2:end,:)')))/size(Y,2);
+    restr_big=restr_big(:,2:end)';
+    dummyalt=dummyalt(:,2:end)';
+
+    R=diag(restr_big(:));
+    R=R(sum(R,2)==1,:);
+    chi2_=(R*dummyalt(:))'*inv(R*cv*R')*(R*dummyalt(:));
+    nrest=size(R,1);
+
+    disp('chi2_stat      DF      p-value');
+    disp([chi2_ nrest  1-chi2cdf(chi2_,nrest)]);
+end
 
 
 %%
@@ -216,6 +246,11 @@ end
 %%
 
 %% 4.Obtain result: IRF and FEVD.
+if VAR.p<0
+    VAR.IRF = [];
+    VAR.FEVD = [];
+
+else
     if ~isempty(pos_shock) && pos_shock > size(VAR.Sigma, 2)
         disp('Shock position exceeds number of variables.');
    
@@ -281,3 +316,4 @@ end
 %                 VAR.irs_total = irs_total(VAR.p+1:end,:,:);
 
     end
+end
