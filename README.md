@@ -1,4 +1,6 @@
-### Structural VAR Toolbox
+## Structural VAR Toolbox
+
+### Basics
 #### Goal        : For model estimation and identification.
 #### Last Update : 20200714 
 #### Disclaimer  : Some of the codes in this toolbox come from following sources. I do not own all the codes.
