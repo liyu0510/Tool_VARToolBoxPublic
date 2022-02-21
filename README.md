@@ -1,6 +1,7 @@
-### Project: SVAR Toolbox
+### Project: Toolbox for Structural VAR Models
+##### Estimation and Identification.
 #### Last Update: 20200714
-#### Goal       : Estimation and Identification of structure VAR models.
+#### Goal       : 
 #### Disclaimer : Some Codes in this toolbox come from following sources. I do not own all the codes.
   * Bianchi [toolbox](https://github.com/ambropo/VAR-Toolbox)
   * BDG (2020) replicate [code](http://www.dew-becker.org/)
