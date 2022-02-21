@@ -1,5 +1,5 @@
-### Project: Toolbox for Structural VAR Models
-##### Estimation and Identification.
+### Structural VAR Toolbox
+##### For model estimation and identification.
 #### Last Update: 20200714
 #### Goal       : 
 #### Disclaimer : Some Codes in this toolbox come from following sources. I do not own all the codes.
